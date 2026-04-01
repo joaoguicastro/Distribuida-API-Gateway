@@ -1,0 +1,70 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  # ===== REDIS (Rate Limiting) =====
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  # ===== ROTAS DO GATEWAY =====
+  # Serão configuradas nas próximas etapas conforme os serviços forem criados
+  cloud:
+    gateway:
+      routes: []  # rotas serão adicionadas aqui futuramente
+
+      # Configurações globais de CORS
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+
+    # ===== EUREKA (Service Discovery) =====
+    # O gateway usará o Eureka para encontrar os microservices
+    netflix:
+      eureka:
+        client:
+          enabled: false  # será habilitado quando o Eureka Server estiver pronto
+
+# ===== EUREKA CLIENT =====
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    register-with-eureka: false  # gateway não precisa se registrar por ora
+    fetch-registry: false
+
+# ===== ACTUATOR (Health Check / Métricas) =====
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus, gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true  # expõe as rotas configuradas via /actuator/gateway
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# ===== LOGS =====
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
