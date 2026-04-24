@@ -15,6 +15,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
     networks:
       - healthsys-network-gateway
       - healthsys-network-pacientes
@@ -44,6 +46,21 @@ services:
       timeout: 5s
       retries: 3
       start_period: 5s
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: healthsys-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - healthsys-network-gateway
+      - healthsys-network-pacientes
+      - healthsys-network-usuarios
+    restart: unless-stopped
 
 volumes:
   redis-data:
