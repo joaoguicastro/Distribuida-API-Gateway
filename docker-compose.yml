@@ -1,51 +1,25 @@
-version: '3.9'
-
 services:
   api-gateway:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     container_name: healthsys-api-gateway
     ports:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
     depends_on:
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_started
+      - rabbitmq
+      - redis
     networks:
-      - healthsys-network-gateway
-      - healthsys-network-pacientes
-      - healthsys-network-usuarios
+      - healthsys-network
     restart: unless-stopped
-    entrypoint: ["sh", "-c", "sleep 10 && java -jar app.jar"]
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
   redis:
     image: redis:7.2-alpine
     container_name: healthsys-redis
     ports:
       - "6379:6379"
-    volumes:
-      - redis-data:/data
     networks:
-      - healthsys-network-gateway
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
+      - healthsys-network
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -53,28 +27,9 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
     networks:
-      - healthsys-network-gateway
-      - healthsys-network-pacientes
-      - healthsys-network-usuarios
-    restart: unless-stopped
-
-volumes:
-  redis-data:
-    driver: local
+      - healthsys-network
 
 networks:
-  healthsys-network-gateway:
-    name: healthsys-network-gateway
-    driver: bridge
-
-  healthsys-network-pacientes:
-    name: healthsys-network-pacientes
-    external: true
-
-  healthsys-network-usuarios:
-    name: healthsys-network-usuarios
+  healthsys-network:
     external: true

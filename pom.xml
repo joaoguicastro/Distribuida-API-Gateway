@@ -35,10 +35,10 @@
 
         <!-- ===== SERVICE DISCOVERY (EUREKA CLIENT) ===== -->
         <!-- Permite que o Gateway descubra os microservices automaticamente -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.cloud</groupId>-->
+<!--            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>-->
+<!--        </dependency>-->
 
         <!-- ===== LOAD BALANCER ===== -->
         <!-- Balanceamento de carga entre instâncias dos serviços -->

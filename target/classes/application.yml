@@ -2,32 +2,43 @@ server:
   port: 8080
 
 spring:
+  application:
+    name: api-gateway
+
   data:
     redis:
       host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
-  application:
-    name: api-gateway
+
   cloud:
+    discovery:
+      enabled: false  # 🔥 desativa discovery (Eureka)
     gateway:
       routes:
+
+        # =========================
+        # PACIENTES
+        # =========================
         - id: paciente-service
           uri: http://healthsys-servico-pacientes:8081
           predicates:
             - Path=/paciente/**
-            - Path=/paciente
 
+        # =========================
+        # USUARIOS
+        # =========================
         - id: usuario-service
           uri: http://healthsys-servico-usuarios:8084
           predicates:
             - Path=/usuario/**
-            - Path=/usuario
 
+        # =========================
+        # AUTH
+        # =========================
         - id: auth-service
           uri: http://healthsys-servico-usuarios:8084
           predicates:
             - Path=/auth/**
-            - Path=/auth
 
       globalcors:
         cors-configurations:
@@ -41,6 +52,9 @@ spring:
               - OPTIONS
             allowedHeaders: "*"
 
+# =========================
+# ACTUATOR
+# =========================
 management:
   endpoints:
     web:
@@ -52,6 +66,9 @@ management:
     gateway:
       enabled: true
 
+# =========================
+# LOGS
+# =========================
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
