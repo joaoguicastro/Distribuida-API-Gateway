@@ -1,0 +1,82 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+
+  cloud:
+    discovery:
+      enabled: false  # desativa (Eureka)
+    gateway:
+      routes:
+        - id: paciente-service
+          uri: http://healthsys-servico-pacientes:8081
+          predicates:
+            - Path=/paciente/**
+
+        - id: usuario-service
+          uri: http://healthsys-servico-usuarios:8084
+          predicates:
+            - Path=/usuario/**
+
+        - id: auth-service
+          uri: http://healthsys-servico-usuarios:8084
+          predicates:
+            - Path=/auth/**
+
+        - id: triagem-service
+          uri: http://healthsys-servico-triagem:8083
+          predicates:
+            - Path=/triagem/**
+
+        - id: notificacao-service
+          uri: http://healthsys-servico-notificacoes:8085
+          predicates:
+            - Path=/notificacao/**
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://127.0.0.1:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            exposedHeaders:
+              - "Authorization"
+
+# =========================
+# ACTUATOR
+# =========================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+# =========================
+# LOGS
+# =========================
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG
+    root: INFO
