@@ -12,34 +12,13 @@ spring:
 
   cloud:
     discovery:
-      enabled: false  # desativa (Eureka)
+      enabled: false
     gateway:
-      routes:
-        - id: paciente-service
-          uri: http://healthsys-servico-pacientes:8081
-          predicates:
-            - Path=/paciente/**
-
-        - id: usuario-service
-          uri: http://healthsys-servico-usuarios:8084
-          predicates:
-            - Path=/usuario/**
-
-        - id: auth-service
-          uri: http://healthsys-servico-usuarios:8084
-          predicates:
-            - Path=/auth/**
-
-        - id: triagem-service
-          uri: http://healthsys-servico-triagem:8083
-          predicates:
-            - Path=/triagem/**
-
-        - id: notificacao-service
-          uri: http://healthsys-servico-notificacoes:8085
-          predicates:
-            - Path=/notificacao/**
-
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials Vary, RETAIN_UNIQUE
+      # CORS centralizado no gateway.
+      # IMPORTANTE: desativar CORS nos servicos downstream
+      # para evitar headers duplicados (Access-Control-Allow-Origin dobrado).
       globalcors:
         cors-configurations:
           '[/**]':
@@ -50,6 +29,7 @@ spring:
               - GET
               - POST
               - PUT
+              - PATCH
               - DELETE
               - OPTIONS
             allowedHeaders:
@@ -58,9 +38,55 @@ spring:
             exposedHeaders:
               - "Authorization"
 
-# =========================
-# ACTUATOR
-# =========================
+      routes:
+        # AUTH — Login e autenticacao (publico)
+        - id: auth-service
+          uri: http://${USUARIOS_HOST:healthsys-servico-usuarios}:8084
+          predicates:
+            - Path=/auth/**
+
+        # USUARIOS — Cadastro de usuarios (publico)
+        - id: usuario-service
+          uri: http://${USUARIOS_HOST:healthsys-servico-usuarios}:8084
+          predicates:
+            - Path=/usuario/**
+
+        # ADMIN — Endpoints administrativos (roteado para servico-usuarios)
+        - id: admin-service
+          uri: http://${USUARIOS_HOST:healthsys-servico-usuarios}:8084
+          predicates:
+            - Path=/admin/**
+
+        # MEDICO — Endpoints exclusivos de medicos
+        - id: medico-service
+          uri: http://${MEDICO_HOST:healthsys-servico-medicos}:8082
+          predicates:
+            - Path=/medico/**
+
+        # RECEPCIONISTA — Endpoints de recepcionistas
+        - id: recepcionista-service
+          uri: http://${RECEPCIONISTA_HOST:healthsys-servico-recepcionista}:8086
+          predicates:
+            - Path=/recepcionista/**
+
+        # PACIENTES — CRUD de pacientes
+        - id: paciente-service
+          uri: http://${PACIENTES_HOST:healthsys-servico-pacientes}:8081
+          predicates:
+            - Path=/paciente/**
+
+        # TRIAGEM — Classificacao de risco
+        - id: triagem-service
+          uri: http://${TRIAGEM_HOST:healthsys-servico-triagem}:8083
+          predicates:
+            - Path=/triagem/**
+
+        # NOTIFICACOES — Alertas e avisos
+        - id: notificacao-service
+          uri: http://${NOTIFICACAO_HOST:healthsys-servico-notificacoes}:8085
+          predicates:
+            - Path=/notificacao/**
+
 management:
   endpoints:
     web:
@@ -72,9 +98,6 @@ management:
     gateway:
       enabled: true
 
-# =========================
-# LOGS
-# =========================
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
