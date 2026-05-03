@@ -20,6 +20,7 @@ services:
       - "6379:6379"
     networks:
       - healthsys-network
+    restart: unless-stopped
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -29,6 +30,30 @@ services:
       - "15672:15672"
     networks:
       - healthsys-network
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: healthsys-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - healthsys-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: healthsys-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: healthsys
+    networks:
+      - healthsys-network
+    restart: unless-stopped
 
 networks:
   healthsys-network:
