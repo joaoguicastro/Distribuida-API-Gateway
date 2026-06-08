@@ -9,11 +9,11 @@ RUN mvn dependency:go-offline -B
 COPY src ./src
 RUN mvn clean package -DskipTests -B
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
-RUN addgroup -S healthsys && adduser -S healthsys -G healthsys
+RUN groupadd -r healthsys && useradd -r -g healthsys healthsys
 USER healthsys
 
 COPY --from=build /app/target/api-gateway-*.jar app.jar
