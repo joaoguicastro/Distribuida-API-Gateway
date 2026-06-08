@@ -35,6 +35,11 @@ spring:
           predicates:
             - Path=/triagem/**
 
+        - id: prontuario-service
+          uri: http://healthsys-servico-prontuario:8082
+          predicates:
+            - Path=/prontuario/**
+
         - id: notificacao-service
           uri: http://healthsys-servico-notificacoes:8085
           predicates:
